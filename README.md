@@ -25,7 +25,7 @@ freetests.py is LICENSE'D under a BSD-like license:
 
 From ws4py
 
-Copyright (c) 2011-2014, Sylvain Hellegouarch, Abram Hindle
+Copyright (c) 2011-2017, Sylvain Hellegouarch, Abram Hindle, J Maxwell Douglas
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -57,3 +57,20 @@ Contributors
 
 * Mark Galloway
 * Abram Hindle
+* J Maxwell Douglas
+
+Citations
+============
+
+Referenced this page in learning to use the json.dumps function:
+https://docs.python.org/2/library/json.html
+
+In several instances portions of functions, or the full function was taken from:
+https://github.com/abramhindle/WebSocketsExamples/blob/master/broadcaster.py
+
+Code from my cmput404-ajax repository was used for canvas and in the wsSetup functions in index.html:
+https://github.com/md6113/CMPUT404-assignment-ajax/blob/master/static/index.html
+Code modified from the following sites:
+https://www.w3schools.com/tags/canvas_drawimage.asp
+https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_shapes
+https://www.w3schools.com/tags/tryit.asp?filename=tryhtml5_canvas_createlineargradient

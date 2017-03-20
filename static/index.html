@@ -1,19 +1,19 @@
 <!DOCTYPE HTML>
-<html> 
-  <head> 
-    <title>Websockets Assignment</title> 
-    <meta charset="utf-8" /> 
-    <meta content='width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;' name='viewport' />
+<html>
+  <head>
+    <title>Websockets Assignment</title>
+    <meta charset="utf-8" />
+    <meta content="width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
     <meta name="viewport" content="width=device-width" />
     <meta name="license" content="
-        Copyright 2013 Google, Abram Hindle
-        
+        Copyright 2017 Google, Abram Hindle, and J Maxwell Douglas
+
         Licensed under the Apache License, Version 2.0 (the "License");
         you may not use this file except in compliance with the License.
         You may obtain a copy of the License at
-        
+
             http://www.apache.org/licenses/LICENSE-2.0
-        
+
         Unless required by applicable law or agreed to in writing, software
         distributed under the License is distributed on an "AS IS" BASIS,
         WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,10 +21,10 @@
         limitations under the License.
     "/>
     <script src="json2.js"></script>
-  </head> 
-  <body bgcolor="white" height="100%" width="100%"> 
+  </head>
+  <body bgcolor="white" height="100%" width="100%">
     <div id="debug"></div>
-    <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas> 
+    <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas>
 
     <script>
       // Fix me
@@ -45,17 +45,48 @@ debug("Test");
 world = {};
 
 //XXX: TODO Make this prettier!
+// This code was also used in my fourth assignment:
+// https://github.com/md6113/CMPUT404-assignment-ajax/blob/master/static/index.html
+// Code modified from the following sites:
+// https://www.w3schools.com/tags/canvas_drawimage.asp
+// https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_shapes
+// https://www.w3schools.com/tags/tryit.asp?filename=tryhtml5_canvas_createlineargradient
 function drawCircle(context,entity) {
     with(context) {
-        beginPath();                
-        lineWidth = 3;
-        var x = entity["x"];
-        var y = entity["y"];
-        //moveTo(x,y);
+      var x = entity["x"];
+      var y = entity["y"];
+      var type = entity["type"];
+      // Draw a triangle
+      if (type === 'triangle') {
+          beginPath();
+          lineWidth = 5;
+          fillStyle = entity["colour"];
+          strokeStyle = fillStyle
+          context.moveTo(75, 50);
+          context.lineTo(100, 75);
+          context.lineTo(100, 25);
+          context.lineTo(75, 50);
+          stroke();
+      // Draw a square
+      } else if (type === 'square') {
+        beginPath();
+        lineWidth = 5;
         fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
+        strokeStyle = fillStyle
+        context.moveTo(25, 25);
+        context.lineTo(25, 75);
+        context.lineTo(75, 75);
+        context.lineTo(75, 25);
+        context.lineTo(25, 25);
+        stroke();
+      } else {
+          beginPath();
+          lineWidth = 3;
+          fillStyle = entity["colour"];
+          strokeStyle=fillStyle;
+          arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);
+          stroke();
+      }
     }
 }
 
@@ -125,6 +156,7 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
+    socket.send(JSON.stringify(world));
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -132,14 +164,14 @@ function addEntityWithoutName(data) {
     addEntity(name,data);
 }
 
-// canvas + mouse/touch is complicated 
+// canvas + mouse/touch is complicated
 // I give you this because well the mouse/touch stuff is a total
 // pain to get right. This has some out of context bug too.
 mouse = (function() {
-    // Now this isn't the most popular way of doing OO in 
+    // Now this isn't the most popular way of doing OO in
     // Javascript, but it relies on lexical scope and I like it
     // This isn't 301 so I'm not totally bound to OO :)
-    var self;    
+    var self;
     self = {
         clicked: 0,
         // these are listener lists append to them
@@ -188,7 +220,7 @@ mouse = (function() {
             }
         },
         touchstart: function(e) {
-            self.lasttouch = e;                                         
+            self.lasttouch = e;
             return self.mousedown(e);
         },
 	touchend: function(e) {
@@ -206,13 +238,13 @@ mouse = (function() {
                     self.callListeners(self.mousedraggers,x,y,self.clicked,e);
 	        }
                 self.callListeners(self.mousemovers,x,y,self.clicked,e);
-            }            
+            }
 	},
 	touchmove: function(e) {
-            self.lasttouch = e;                                         
+            self.lasttouch = e;
             return self.mousemove(e);
 	},
-		                                   
+
         // Install the mouse listeners
 	mouseinstall: function() {
             canvas.addEventListener("mousedown",  self.mousedown, false);
@@ -230,17 +262,18 @@ mouse = (function() {
 
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
+// Added 'type' to specify the shape of the click
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'blue', 'type':'square'});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'magenta', 'type':'triangle'});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
     addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+                          'radius':10, 'type': 'circle'});
 });
 
 
@@ -250,22 +283,48 @@ function update() {
 
 
 function wsSetup() {
-    var url = "ws://"+host+"/subscribe";   
+    var url = "ws://"+host+"/subscribe";
     socket = new WebSocket(url);
     socket.onopen = function() {
         //XXX: TODO What are you going to do here?
+        // This portion of code was adapted from my last assignment.
+        // The code can be found here:
+        // https://github.com/md6113/CMPUT404-assignment-ajax/blob/master/static/index.html
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "http://" + host + "/world", false);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState==4) {
+                try {
+                    if (xhr.status==200) {
+                        //XXX: parse some JSON from the request!
+                        var objs = JSON.parse(xhr.responseText);
+                        for (var i in objs){
+                            world[i] = objs[i];
+                        }
+                    }
+                } catch(e) {
+                    alert('Error: ' + e.name);
+                }
+            }
+        };
+        xhr.send(null);
     };
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
     };
-    socket.onmessage = function(msg) {  
+    socket.onmessage = function(msg) {
         try {
             debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+            //XXX: TODO What are you going to do here?
+            var objs = JSON.parse(msg.data);
+            for (var i in objs) {
+                world[i] = objs[i];
+                drawNextFrame();
+            }
         } catch (e) {
             alert("socket on message: " + e);
         }
-    }; 
+    };
 }
 
 wsSetup();
